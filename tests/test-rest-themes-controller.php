@@ -1,6 +1,15 @@
 <?php
 
 class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_TestCase {
+	protected $admin_id;
+
+	public function setUp() {
+		parent::setUp();
+
+		$this->admin_id = $this->factory->user->create( array(
+			'role' => 'administrator',
+		) );
+	}
 
 	public function test_register_routes() {
 		$routes = $this->server->get_routes();
@@ -24,7 +33,14 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_TestCase {
 	}
 
 	public function test_get_items() {
+		wp_set_current_user( $this->admin_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/themes' );
+		/** @var WP_REST_Response $response */
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
 
+		$data = $response->get_data();
+		$this->assertEquals( 3, count( $data ) );
 	}
 
 	public function test_get_item() {
@@ -48,7 +64,21 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_TestCase {
 	}
 
 	public function test_get_item_schema() {
-
+		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/themes' );
+		$response   = $this->server->dispatch( $request );
+		$data       = $response->get_data();
+		$properties = $data['schema']['properties'];
+		$this->assertEquals( 8, count( $properties ) );
+		$this->assertArrayHasKey( 'name', $properties );
+		$this->assertArrayHasKey( 'version', $properties );
+		$this->assertArrayHasKey( 'description', $properties );
+		$this->assertArrayHasKey( 'author', $properties );
+		$this->assertArrayHasKey( 'author_uri', $properties );
+		$this->assertArrayHasKey( 'text_domain', $properties );
+		$this->assertArrayHasKey( 'domain_path', $properties );
+		$this->assertArrayHasKey( 'tags', $properties );
+		$this->assertArrayHasKey( 'minItems', $properties['tags'] );
+		$this->assertGreaterThanOrEqual( 1, $properties['tags']['minItems'] );
 	}
 
 }
