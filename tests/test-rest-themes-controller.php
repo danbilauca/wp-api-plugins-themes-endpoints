@@ -49,17 +49,24 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_TestCase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/themes' );
 		/** @var WP_REST_Response $response */
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->check_response( $response );
 
+		//check if there exists at least one item in the list
 		$data = $response->get_data();
 		$this->assertGreaterThanOrEqual( 1, $data );
 
 		$first = reset( $data );
-		$this->assertArrayHasKey( 'name', $first );
+		$this->check_data( $first );
 	}
 
 	public function test_get_item() {
+		wp_set_current_user( $this->admin_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/themes/twentysixteen' );
+		/** @var WP_REST_Response $response */
+		$response = $this->server->dispatch( $request );
 
+		$this->check_response( $response );
+		$this->check_data( $response->get_data() );
 	}
 
 	public function test_create_item() {
@@ -83,7 +90,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_TestCase {
 		$response   = $this->server->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 8, count( $properties ) );
+		$this->assertEquals( 9, count( $properties ) );
+
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'version', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
@@ -94,6 +102,32 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_TestCase {
 		$this->assertArrayHasKey( 'tags', $properties );
 		$this->assertArrayHasKey( 'minItems', $properties['tags'] );
 		$this->assertGreaterThanOrEqual( 1, $properties['tags']['minItems'] );
+	}
+
+	/**
+	 * General checking for response
+	 *
+	 * @param WP_REST_Response $response
+	 */
+	protected function check_response( $response ) {
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$this->assertEquals( 200, $response->get_status() );
+	}
+
+	/**
+	 * Check theme's data
+	 *
+	 * @param $data
+	 */
+	protected function check_data( $data ) {
+		$this->assertArrayHasKey( 'name', $data );
+		$this->assertArrayHasKey( 'version', $data );
+		$this->assertArrayHasKey( 'description', $data );
+		$this->assertArrayHasKey( 'author', $data );
+		$this->assertArrayHasKey( 'author_uri', $data );
+		$this->assertArrayHasKey( 'text_domain', $data );
+		$this->assertArrayHasKey( 'domain_path', $data );
+		$this->assertArrayHasKey( 'tags', $data );
 	}
 
 }

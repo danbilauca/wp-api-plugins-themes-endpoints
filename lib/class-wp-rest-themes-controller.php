@@ -66,8 +66,6 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			$data[] = $this->prepare_response_for_collection( $theme );
 		}
 
-		print_r( $data );
-
 		return rest_ensure_response( $data );
 	}
 
@@ -89,7 +87,25 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	}
 
 	public function get_item( $request ) {
+		$slug  = $request['slug'];
+		$theme = null;
 
+		$themes = wp_get_themes();
+		foreach ( $themes as $key => $obj ) {
+			if ( $slug !== $key ) {
+				continue;
+			}
+			$theme       = $obj;
+			$theme->slug = $key;
+		}
+
+		if ( ! $theme ) {
+			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid theme slug.' ), array( 'status' => 404 ) );
+		}
+
+		$data = $this->prepare_item_for_response( $theme, $request );
+
+		return rest_ensure_response( $data );
 	}
 
 	/**
