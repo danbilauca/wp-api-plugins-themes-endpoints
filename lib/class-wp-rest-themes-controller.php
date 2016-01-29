@@ -56,14 +56,17 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		$data   = array();
 		$themes = wp_get_themes();
 
-		foreach ( $themes as $obj ) {
-			$theme = $this->prepare_item_for_response( $obj, $request );
+		foreach ( $themes as $slug => $obj ) {
+			$obj->slug = $slug;
+			$theme     = $this->prepare_item_for_response( $obj, $request );
 			if ( is_wp_error( $theme ) ) {
 				continue;
 			}
 
 			$data[] = $this->prepare_response_for_collection( $theme );
 		}
+
+		print_r( $data );
 
 		return rest_ensure_response( $data );
 	}
@@ -72,6 +75,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to read /theme/{theme-name}
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
+	 *
 	 * @return WP_Error|boolean
 	 */
 	public function get_item_permissions_check( $request ) {
@@ -92,6 +96,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * check if a request can delete a theme
 	 *
 	 * @param WP_REST_Request $request
+	 *
 	 * @return WP_Error|boolean
 	 */
 	public function delete_item_permissions_check( $request ) {
@@ -119,6 +124,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	public function prepare_item_for_response( $item, $request ) {
 		return array(
 			'name'        => $item->get( 'Name' ),
+			'slug'        => $item->slug,
 			'version'     => $item->get( 'Version' ),
 			'description' => $item->get( 'Description' ),
 			'author'      => $item->get( 'Author' ),
@@ -137,6 +143,10 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			'properties' => array(
 				'name'        => array(
 					'description' => __( 'The title for the resource.' ),
+					'type'        => 'string',
+				),
+				'slug'        => array(
+					'description' => __( 'The identifier for theme' ),
 					'type'        => 'string',
 				),
 				'version'     => array(
