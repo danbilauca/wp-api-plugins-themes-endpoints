@@ -17,6 +17,18 @@ class WP_Test_REST_Plugins_Controller extends WP_Test_REST_Controller_TestCase {
 		$this->assertArrayHasKey( '/wp/v2/plugins/(?P<slug>[\w-]+)', $routes );
 	}
 
+	public function test_delete_item_without_permission() {
+
+		wp_set_current_user( 0 );
+
+		$request = new WP_REST_Request( WP_REST_Server::DELETABLE, '/wp/v2/plugins/hello-dolly' );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_forbidden', $response, 401 );
+
+	}
+
 	public function test_context_param() {
 
 	}
@@ -33,6 +45,9 @@ class WP_Test_REST_Plugins_Controller extends WP_Test_REST_Controller_TestCase {
 	}
 
 	public function test_get_item() {
+
+		wp_set_current_user( $this->admin_id );
+
 		$request = new WP_REST_Request( 'GET', '/wp/v2/plugins/hello-dolly' );
 		$response = $this->server->dispatch( $request );
 
@@ -81,7 +96,7 @@ class WP_Test_REST_Plugins_Controller extends WP_Test_REST_Controller_TestCase {
 
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 403, $response->get_status() );
+		$this->assertErrorResponse( 'rest_forbidden', $response, 401 );
 	}
 
 	protected function check_get_plugins_response( $response, $context = 'view' ) {
@@ -90,18 +105,8 @@ class WP_Test_REST_Plugins_Controller extends WP_Test_REST_Controller_TestCase {
 		$this->assertEquals( 200, $response->get_status() );
 		$theme_data = $response->get_data();
 
-		$plugin = []; // fixme - get theme object
+		$plugin = array(); // fixme - get theme object
 		$this->check_plugin_data( $plugin );
-	}
-
-	protected function check_get_plugin_response( $response, $context = 'view' ) {
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = rest_ensure_response( $response );
-		$this->assertEquals( 200, $response->get_status() );
-
-		$data = $response->get_data();
-		$post = get_post( $data['id'] );
-		$this->check_plugin_data( $post, $data, $context );
 	}
 
 	protected function check_plugin_data( $plugin ) {
