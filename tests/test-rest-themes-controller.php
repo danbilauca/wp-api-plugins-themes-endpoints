@@ -52,7 +52,10 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_TestCase {
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 3, count( $data ) );
+		$this->assertGreaterThanOrEqual( 1, $data );
+
+		$first = reset( $data );
+		$this->assertArrayHasKey( 'name', $first );
 	}
 
 	public function test_get_item() {
