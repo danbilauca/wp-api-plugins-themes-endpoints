@@ -168,7 +168,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'type'        => 'array',
 					'minItems'    => 1,
 					'items'       => array(
-						'type' => 'string'
+						'type' => 'string',
 					),
 				),
 			),
