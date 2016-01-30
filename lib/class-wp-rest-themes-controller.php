@@ -92,11 +92,11 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 		$themes = wp_get_themes();
 		foreach ( $themes as $key => $obj ) {
-			if ( $slug !== $key ) {
-				continue;
+			if ( $slug === $key ) {
+				$theme       = $obj;
+				$theme->slug = $key;
+				break;
 			}
-			$theme       = $obj;
-			$theme->slug = $key;
 		}
 
 		if ( ! $theme ) {
